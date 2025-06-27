@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import React, {useState} from 'react';
-import { Box, Grid, Typography, Button } from '@mui/material';
+import { Box, Grid, Typography, Button, Fade } from '@mui/material';
 import { borderRadius, styled } from '@mui/system';
 
 // Icons
@@ -23,8 +23,6 @@ import {
   FormControlLabel,
   Backdrop,
 } from '@mui/material';
-import RecipeCarousel from './components/recipeCarousal';
-
 
 // Styled component
 const IconButton = styled(Button)(({ theme }) => ({
@@ -44,6 +42,8 @@ export default function SimpleChef() {
   const router = useRouter();
 
   const [openSettings, setOpenSettings] = useState(false);
+  const [showScreensaver, setShowScreensaver] = useState(false);
+
   const [features, setFeatures] = useState({
     sleepMode: false,
     safetyMode: true,
@@ -59,16 +59,14 @@ export default function SimpleChef() {
 
   // Color mapping
   const buttonData = [
-    { label: 'Recipes', icon: <RestaurantMenuIcon fontSize="large" />, bg: '#d1b3ff', onClick: () => router.push('/recipes') },
-    { label: 'Safety', icon: <SecurityIcon fontSize="large" />, bg: '#a4f9a4', onClick: () => router.push('/safety')},
+    { label: 'Recipes', icon: <RestaurantMenuIcon fontSize="large" />, bg: '#a4f9a4', onClick: () => router.push('/recipes') },
     { label: 'Settings', icon: <SettingsIcon fontSize="large" />, bg: '#dddddd', onClick: () => setOpenSettings(true)},
-    { label: 'Sleep Mode', icon: <NightsStayIcon fontSize="large" />, bg: '#a0c4ff', onClick: () => router.push('/sleep_mode') },
-    { label: 'Ingredients', icon: <ShoppingBasketIcon fontSize="large" />, bg: '#fddf92', onClick: () => router.push('/ingredients') },
+    { label: 'Sleep Mode', icon: <NightsStayIcon fontSize="large" />, bg: '#a0c4ff', onClick: () => setShowScreensaver(true)},
     { label: 'Conversions', icon: <StraightenIcon fontSize="large" />, bg: '#f9a8d4', onClick: () => router.push('/conversions')},
   ];
   return (
-    <Box sx={{ textAlign: 'center', p: 4 }}>
-      <Typography variant="h4" sx={{ mb: 4, color: '#2196f3' }}>
+    <Box sx={{ textAlign: 'center', paddingLeft: 20, paddingRight: 20}}>
+      <Typography variant="h2" sx={{ mt: -4, mb: 4, color: '#2196f3' }}>
         SimpleChef
       </Typography>
 
@@ -103,16 +101,6 @@ export default function SimpleChef() {
             label="Celsius/Fahrenheit"
             labelPlacement='bottom'
           />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={features.autoUpdate}
-                onChange={() => handleToggle('autoUpdate')}
-              />
-            }
-            label="Auto Update"
-            labelPlacement='bottom'
-          />
         </DialogContent>
 
         <DialogActions>
@@ -125,16 +113,39 @@ export default function SimpleChef() {
         open={openSettings}
       />
 
-      <Grid container spacing={3} justifyContent="center">
+      <Grid container spacing={6} justifyContent="center">
         {buttonData.map((btn, index) => (
-          <Grid item xs={12} sm={4} md={4} key={index}>
-              <IconButton onClick={btn.onClick} style={{ backgroundColor: btn.bg, width: '300px' }}>
+          <Grid item xs={12} sm={6} key={index}>
+              <IconButton onClick={btn.onClick} style={{ backgroundColor: btn.bg, width: '300px', height:'150px' }}>
                 {btn.icon}
                 <Typography variant="subtitle1" sx={{ mt: 1 }}>{btn.label}</Typography>
               </IconButton>
           </Grid>
         ))}
       </Grid>
+
+       <Fade in={showScreensaver}>
+        <Box
+          onClick={() => setShowScreensaver(false)}
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            height: '100vh',
+            width: '100vw',
+            bgcolor: 'black',
+            color: 'white',
+            zIndex: 1300,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem',
+            cursor: 'pointer',
+          }}
+        >
+          Sleep Mode — click anywhere to wake
+        </Box>
+      </Fade>
     </Box>
   );
 }

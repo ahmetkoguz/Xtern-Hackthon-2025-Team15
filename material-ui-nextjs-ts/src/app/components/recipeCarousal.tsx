@@ -1,43 +1,59 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   ImageList,
   ImageListItem,
   ImageListItemBar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  CircularProgress,
+  Button,
 } from '@mui/material';
 
-// Static image URLs with proper format
-const recipes = [
-  {
-    title: 'Spaghetti',
-    img: 'https://plus.unsplash.com/premium_photo-1677000666741-17c3c57139a2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c3BhZ2hldHRpfGVufDB8fDB8fHww',
-  },
-  {
-    title: 'Steak',
-    img: 'https://plus.unsplash.com/premium_photo-1723672929404-36ba6ed8ab50?q=80&w=1063&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  {
-    title: 'Sushi',
-    img: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  {
-    title: 'Salad Bowl',
-    img: 'https://images.unsplash.com/photo-1568158879083-c42860933ed7?q=80&w=1972&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  {
-    title: 'Pizza Margherita',
-    img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=781&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-];
 
-export default function RecipeCarousel() {
+export default function RecipeCarousel({ title = 'Feature Recipes', recipes}) {
+  const [open, setOpen] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null);
+  const [instructions, setInstructions] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleOpen = async (title: string) => {
+    setSelectedRecipe(title);
+    setOpen(true);
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/instructions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recipe: title }),
+      });
+
+      const data = await res.json();
+      setInstructions(data.instructions || 'No instructions found.');
+    } catch (err) {
+      setInstructions('An error occurred while fetching instructions.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedRecipe(null);
+    setInstructions('');
+  };
+
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h5" sx={{ mb: 2 }}>
-        Featured Recipes
+        {title}
       </Typography>
 
       <ImageList
@@ -53,11 +69,14 @@ export default function RecipeCarousel() {
         {recipes.map((item, index) => (
           <ImageListItem
             key={index}
+            onClick={() => handleOpen(item.title)}
             sx={{
               minWidth: 250,
               borderRadius: 2,
               overflow: 'hidden',
               flex: '0 0 auto',
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.9 },
             }}
           >
             <Box
@@ -80,6 +99,25 @@ export default function RecipeCarousel() {
           </ImageListItem>
         ))}
       </ImageList>
+
+      {/* Dialog for Instructions */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Instructions for {selectedRecipe}
+        </DialogTitle>
+        <DialogContent dividers>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Typography whiteSpace="pre-line">{instructions}</Typography>
+          )}
+        </DialogContent>
+        <Box sx={{ p: 2, textAlign: 'right' }}>
+          <Button onClick={handleClose}>Close</Button>
+        </Box>
+      </Dialog>
     </Box>
   );
 }
